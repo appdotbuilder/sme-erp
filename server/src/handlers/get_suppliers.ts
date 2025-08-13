@@ -1,9 +1,22 @@
+import { db } from '../db';
+import { suppliersTable } from '../db/schema';
 import { type Supplier } from '../schema';
 
-export async function getSuppliers(): Promise<Supplier[]> {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is to fetch all suppliers from the database.
-  // Should decrypt sensitive fields (bank_account, tax_id) before returning.
-  // Consider implementing role-based access control for sensitive data visibility.
-  return Promise.resolve([]);
-}
+export const getSuppliers = async (): Promise<Supplier[]> => {
+  try {
+    const results = await db.select()
+      .from(suppliersTable)
+      .execute();
+
+    // Convert database results to schema format
+    return results.map(supplier => ({
+      ...supplier,
+      // Note: In a real application, sensitive fields like bank_account and tax_id
+      // should be decrypted here if they were encrypted in the database
+      // and access should be controlled based on user roles
+    }));
+  } catch (error) {
+    console.error('Failed to fetch suppliers:', error);
+    throw error;
+  }
+};

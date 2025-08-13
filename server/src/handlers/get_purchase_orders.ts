@@ -1,9 +1,23 @@
+import { db } from '../db';
+import { purchaseOrdersTable, suppliersTable, purchaseOrderItemsTable, itemsTable } from '../db/schema';
 import { type PurchaseOrder } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function getPurchaseOrders(): Promise<PurchaseOrder[]> {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is to fetch all purchase orders from the database.
-  // Should include relations to suppliers and items for complete information.
-  // Could implement filtering by status, supplier, date range, etc.
-  return Promise.resolve([]);
-}
+export const getPurchaseOrders = async (): Promise<PurchaseOrder[]> => {
+  try {
+    // Fetch all purchase orders with their supplier information
+    const results = await db.select()
+      .from(purchaseOrdersTable)
+      .innerJoin(suppliersTable, eq(purchaseOrdersTable.supplier_id, suppliersTable.id))
+      .execute();
+
+    // Convert numeric fields back to numbers before returning
+    return results.map(result => ({
+      ...result.purchase_orders,
+      total_amount: parseFloat(result.purchase_orders.total_amount) // Convert string back to number
+    }));
+  } catch (error) {
+    console.error('Failed to fetch purchase orders:', error);
+    throw error;
+  }
+};
